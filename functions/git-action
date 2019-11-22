@@ -1,80 +1,35 @@
 # vim:et sts=2 sw=2 ft=zsh
-# Gets the Git special action (am, bisect, cherry, merge, rebase).
-# Borrowed from vcs_info and edited.
-local git_dir=${$(command git rev-parse --git-dir):A}
-local action_dir
-for action_dir in \
-  "${git_dir}/rebase-apply" \
-  "${git_dir}/rebase" \
-  "${git_dir}/../.dotest"
-do
-  if [[ -d ${action_dir} ]]; then
-    local apply_formatted rebase_formatted
-    zstyle -s ':zim:git-info:action:apply' format 'apply_formatted' || apply_formatted='apply'
-    zstyle -s ':zim:git-info:action:rebase' format 'rebase_formatted' || rebase_formatted='rebase'
+# Borrowed from git_repository_state function in
+# https://github.com/libgit2/libgit2/blob/master/src/repository.c
 
-    if [[ -f "${action_dir}/rebasing" ]]; then
-      print ${rebase_formatted}
-    elif [[ -f "${action_dir}/applying" ]]; then
-      print ${apply_formatted}
-    else
-      print "${rebase_formatted}/${apply_formatted}"
-    fi
-
-    return 0
-  fi
-done
-
-for action_dir in \
-  "${git_dir}/rebase-merge/interactive" \
-  "${git_dir}/.dotest-merge/interactive"
-do
-  if [[ -f ${action_dir} ]]; then
-    local rebase_interactive_formatted
-    zstyle -s ':zim:git-info:action:rebase-interactive' format 'rebase_interactive_formatted' || rebase_interactive_formatted='rebase-interactive'
-    print ${rebase_interactive_formatted}
-    return 0
-  fi
-done
-
-for action_dir in \
-  "${git_dir}/rebase-merge" \
-  "${git_dir}/.dotest-merge"
-do
-  if [[ -d ${action_dir} ]]; then
-    local rebase_merge_formatted
-    zstyle -s ':zim:git-info:action:rebase-merge' format 'rebase_merge_formatted' || rebase_merge_formatted='rebase-merge'
-    print ${rebase_merge_formatted}
-    return 0
-  fi
-done
-
-if [[ -f "${git_dir}/MERGE_HEAD" ]]; then
-  local merge_formatted
-  zstyle -s ':zim:git-info:action:merge' format 'merge_formatted' || merge_formatted='merge'
-  print ${merge_formatted}
-  return 0
-fi
-
-if [[ -f "${git_dir}/CHERRY_PICK_HEAD" ]]; then
-  if [[ -d "${git_dir}/sequencer" ]]; then
-    local cherry_pick_sequence_formatted
-    zstyle -s ':zim:git-info:action:cherry-pick-sequence' format 'cherry_pick_sequence_formatted' || cherry_pick_sequence_formatted='cherry-pick-sequence'
-    print ${cherry_pick_sequence_formatted}
+local gitdir=${$(command git rev-parse --git-dir):A}
+if [[ -f "${gitdir}/rebase-merge/interactive" ]]; then
+  print 'rebase-i'
+elif [[ -d "${gitdir}/rebase-merge" ]]; then
+  print 'rebase-m'
+elif [[ -f "${gitdir}/rebase-apply/rebasing" ]]; then
+  print 'rebase'
+elif [[ -f "${gitdir}/rebase-apply/applying" ]]; then
+  print 'am'
+elif [[ -d "${gitdir}/rebase-apply/" ]]; then
+  print 'am/rebase'
+elif [[ -f "${gitdir}/MERGE_HEAD" ]]; then
+  print 'merge'
+elif [[ -f "${gitdir}/REVERT_HEAD" ]]; then
+  if [[ -f "${gitdir}/sequencer/todo" ]]; then
+    print 'revert-seq'
   else
-    local cherry_pick_formatted
-    zstyle -s ':zim:git-info:action:cherry-pick' format 'cherry_pick_formatted' || cherry_pick_formatted='cherry-pick'
-    print ${cherry_pick_formatted}
+    print 'revert'
   fi
-
-  return 0
+elif [[ -f "${gitdir}/CHERRY_PICK_HEAD" ]]; then
+  if [[ -f "${gitdir}/sequencer/todo" ]]; then
+    print 'cherry-seq'
+  else
+    print 'cherry'
+  fi
+elif [[ -f "${gitdir}/BISECT_LOG" ]]; then
+  print 'bisect'
+else
+  return 1
 fi
-
-if [[ -f "${git_dir}/BISECT_LOG" ]]; then
-  local bisect_formatted
-  zstyle -s ':zim:git-info:action:bisect' format 'bisect_formatted' || bisect_formatted='bisect'
-  print ${bisect_formatted}
-  return 0
-fi
-
-return 1
+return 0

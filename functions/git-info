@@ -29,9 +29,10 @@ fi
 # Format action.
 local action_format action_formatted
 if zstyle -s ':zim:git-info:action' format 'action_format'; then
-  local action=$(git-action)
-  if [[ -n ${action} ]]; then
-    zformat -f action_formatted ${action_format} "s:${action}"
+  local special_action special_action_formatted
+  if special_action=$(git-action); then
+    zstyle -s ":zim:git-info:action:${special_action}" format 'special_action_formatted' || special_action_formatted=${special_action}
+    zformat -f action_formatted ${action_format} "s:${special_action_formatted}"
   fi
 fi
 

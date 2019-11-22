@@ -64,16 +64,19 @@ contexts are only available when an actual branch is checked out (so when
 
 ### Special action contexts
 
-| Name                        | Default value
-| --------------------------- | ----------------------
-| action:apply                | 'apply'
-| action:bisect               | 'bisect'
-| action:cherry-pick          | 'cherry-pick'
-| action:cherry-pick-sequence | 'cherry-pick-sequence'
-| action:merge                | 'merge'
-| action:rebase               | 'rebase'
-| action:rebase-interactive   | 'rebase-interactive'
-| action:rebase-merge         | 'rebase-merge'
+| Name              | Description             | Default value
+| ----------------- | ----------------------- | -------------
+| action:rebase-i   | Rebase interactive      | 'rebase-i'
+| action:rebase-m   | Rebase merge            | 'rebase-m'
+| action:rebase     | Rebase                  | 'rebase'
+| action:am         | Apply mailbox           | 'am'
+| action:am/rebase  | Apply mailbox or rebase | 'am/rebase'
+| action:merge      | Merge                   | 'merge'
+| action:revert-seq | Revert sequence         | 'revert-seq'
+| action:revert     | Revert                  | 'revert'
+| action:cherry-seq | Cherry-pick sequence    | 'cherry-seq'
+| action:cherry     | Cherry-pick             | 'cherry'
+| action:bisect     | Bisect                  | 'bisect'
 
 Formatting example for special actions:
 
@@ -103,17 +106,15 @@ Here's a complete example:
 ```zsh
 setopt nopromptbang prompt{cr,percent,sp,subst}
 
-if (( ${+functions[git-info]} )); then
-  zstyle ':zim:git-info:branch' format 'branch:%b'
-  zstyle ':zim:git-info:commit' format 'commit:%c'
-  zstyle ':zim:git-info:remote' format 'remote:%R'
+zstyle ':zim:git-info:branch' format 'branch:%b'
+zstyle ':zim:git-info:commit' format 'commit:%c'
+zstyle ':zim:git-info:remote' format 'remote:%R'
 
-  zstyle ':zim:git-info:keys' format \
-      'prompt'  'git(%b%c)' \
-      'rprompt' '[%R]'
+zstyle ':zim:git-info:keys' format \
+    'prompt'  'git(%b%c)' \
+    'rprompt' '[%R]'
 
-  autoload -Uz add-zsh-hook && add-zsh-hook precmd git-info
-fi
+autoload -Uz add-zsh-hook && add-zsh-hook precmd git-info
 
 PS1='${(e)git_info[prompt]}%# '
 RPS1='${(e)git_info[rprompt]}'
