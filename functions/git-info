@@ -23,7 +23,7 @@ zstyle -s ':zim:git-info' ignore-submodules 'ignore_submodules' || ignore_submod
 local stashed_format stashed_formatted
 if zstyle -s ':zim:git-info:stashed' format 'stashed_format'; then
   local -i stashed=$(command git stash list 2>/dev/null | wc -l)
-  (( stashed )) && zformat -f stashed_formatted ${stashed_format} "S:${stashed}"
+  if (( stashed )) zformat -f stashed_formatted ${stashed_format} "S:${stashed}"
 fi
 
 # Format action.
@@ -164,8 +164,8 @@ else
     if [[ ${line:0:2} == '??' ]]; then
       (( untracked++ ))
     else
-      [[ ${line:0:1} != ' ' ]] && (( indexed++ ))
-      [[ ${line:1:1} != ' ' ]] && (( unindexed++ ))
+      if [[ ${line:0:1} != ' ' ]] (( indexed++ ))
+      if [[ ${line:1:1} != ' ' ]] (( unindexed++ ))
     fi
     (( dirty++ ))
   done < <(${(z)status_cmd} 2>/dev/null)
