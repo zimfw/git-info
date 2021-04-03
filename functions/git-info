@@ -160,7 +160,8 @@ else
 
   local -i indexed unindexed untracked
   # Get current status.
-  while IFS=$'\n' read line; do
+  local line
+  while IFS= read -r line; do
     if [[ ${line:0:2} == '??' ]]; then
       (( untracked++ ))
     else
