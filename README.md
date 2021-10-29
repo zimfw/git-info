@@ -66,17 +66,17 @@ contexts are only available when an actual branch is checked out (so when
 
 | Name              | Description             | Default value
 | ----------------- | ----------------------- | -------------
-| action:rebase-i   | Rebase interactive      | 'rebase-i'
-| action:rebase-m   | Rebase merge            | 'rebase-m'
-| action:rebase     | Rebase                  | 'rebase'
-| action:am         | Apply mailbox           | 'am'
-| action:am/rebase  | Apply mailbox or rebase | 'am/rebase'
-| action:merge      | Merge                   | 'merge'
-| action:revert-seq | Revert sequence         | 'revert-seq'
-| action:revert     | Revert                  | 'revert'
-| action:cherry-seq | Cherry-pick sequence    | 'cherry-seq'
-| action:cherry     | Cherry-pick             | 'cherry'
-| action:bisect     | Bisect                  | 'bisect'
+| action:rebase-i   | Rebase interactive      | rebase-i
+| action:rebase-m   | Rebase merge            | rebase-m
+| action:rebase     | Rebase                  | rebase
+| action:am         | Apply mailbox           | am
+| action:am/rebase  | Apply mailbox or rebase | am/rebase
+| action:merge      | Merge                   | merge
+| action:revert-seq | Revert sequence         | revert-seq
+| action:revert     | Revert                  | revert
+| action:cherry-seq | Cherry-pick sequence    | cherry-seq
+| action:cherry     | Cherry-pick             | cherry
+| action:bisect     | Bisect                  | bisect
 
 Formatting example for special actions:
 

@@ -2,33 +2,33 @@
 # Borrowed from git_repository_state function in
 # https://github.com/libgit2/libgit2/blob/master/src/repository.c
 
-local gitdir=${$(command git rev-parse --git-dir):A}
-if [[ -f "${gitdir}/rebase-merge/interactive" ]]; then
-  print 'rebase-i'
-elif [[ -d "${gitdir}/rebase-merge" ]]; then
-  print 'rebase-m'
-elif [[ -f "${gitdir}/rebase-apply/rebasing" ]]; then
-  print 'rebase'
-elif [[ -f "${gitdir}/rebase-apply/applying" ]]; then
-  print 'am'
-elif [[ -d "${gitdir}/rebase-apply/" ]]; then
-  print 'am/rebase'
-elif [[ -f "${gitdir}/MERGE_HEAD" ]]; then
-  print 'merge'
-elif [[ -f "${gitdir}/REVERT_HEAD" ]]; then
-  if [[ -f "${gitdir}/sequencer/todo" ]]; then
-    print 'revert-seq'
+local -r gitdir=${"$(command git rev-parse --git-dir)":A}
+if [[ -f ${gitdir}/rebase-merge/interactive ]]; then
+  print rebase-i
+elif [[ -d ${gitdir}/rebase-merge ]]; then
+  print rebase-m
+elif [[ -f ${gitdir}/rebase-apply/rebasing ]]; then
+  print rebase
+elif [[ -f ${gitdir}/rebase-apply/applying ]]; then
+  print am
+elif [[ -d ${gitdir}/rebase-apply/ ]]; then
+  print am/rebase
+elif [[ -f ${gitdir}/MERGE_HEAD ]]; then
+  print merge
+elif [[ -f ${gitdir}/REVERT_HEAD ]]; then
+  if [[ -f ${gitdir}/sequencer/todo ]]; then
+    print revert-seq
   else
-    print 'revert'
+    print revert
   fi
-elif [[ -f "${gitdir}/CHERRY_PICK_HEAD" ]]; then
-  if [[ -f "${gitdir}/sequencer/todo" ]]; then
-    print 'cherry-seq'
+elif [[ -f ${gitdir}/CHERRY_PICK_HEAD ]]; then
+  if [[ -f ${gitdir}/sequencer/todo ]]; then
+    print cherry-seq
   else
-    print 'cherry'
+    print cherry
   fi
-elif [[ -f "${gitdir}/BISECT_LOG" ]]; then
-  print 'bisect'
+elif [[ -f ${gitdir}/BISECT_LOG ]]; then
+  print bisect
 else
   return 1
 fi
