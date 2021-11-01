@@ -11,9 +11,12 @@ unset git_info
 typeset -gA git_info
 
 # Return if not inside a Git repository work tree.
-if ! command git rev-parse --is-inside-work-tree &>/dev/null; then
-  return 1
-fi
+local __f=${0:A:h}
+while true; do
+  if [[ -d "${__f:A}/.git" ]]; then break; fi
+  if [[ ${__f:A} == "/" ]]; then return 1; fi
+  __f=${__f:A}/..
+done
 
 # Ignore submodule status.
 local ignore_submodules
