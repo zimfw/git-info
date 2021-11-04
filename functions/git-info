@@ -4,37 +4,11 @@
 #
 
 # Extended globbing is needed to parse repository status.
-setopt LOCAL_OPTIONS EXTENDED_GLOB
+setopt LOCAL_OPTIONS EXTENDED_GLOB MULTIOS
 
 # Clean up previous git_info.
 unset git_info
 typeset -gA git_info
-
-# Return if not inside a Git repository work tree.
-if ! command git rev-parse --is-inside-work-tree &>/dev/null; then
-  return 1
-fi
-
-# Ignore submodule status.
-local ignore_submodules
-zstyle -s ':zim:git-info' ignore-submodules 'ignore_submodules' || ignore_submodules=all
-
-# Format stashed.
-local stashed_format stashed_formatted
-if zstyle -s ':zim:git-info:stashed' format 'stashed_format'; then
-  local -ri stashed=$(command git stash list 2>/dev/null | wc -l)
-  if (( stashed )) zformat -f stashed_formatted ${stashed_format} "S:${stashed}"
-fi
-
-# Format action.
-local action_format action_formatted
-if zstyle -s ':zim:git-info:action' format 'action_format'; then
-  local special_action special_action_formatted
-  if special_action=$(git-action); then
-    zstyle -s ":zim:git-info:action:${special_action}" format 'special_action_formatted' || special_action_formatted=${special_action}
-    zformat -f action_formatted ${action_format} "s:${special_action_formatted}"
-  fi
-fi
 
 # The contents of git_info are subject to expansion by the shell. Avoid
 # putting raw ref names in the prompt to protect the user from arbitrary code
@@ -44,10 +18,32 @@ fi
 # reference these variables from git_info.
 # See https://github.com/njhartwell/pw3nage
 
-# Get the branch.
+# Get the branch, and return if not inside a Git repository work tree.
 __GIT_INFO_BRANCH=$(command git symbolic-ref -q --short HEAD 2>/dev/null)
+if (( ? == 128 )) return 1
 
-local ahead_formatted behind_formatted branch_formatted commit_formatted diverged_formatted position_formatted remote_formatted
+# Ignore submodule status.
+local ignore_submodules
+zstyle -s ':zim:git-info' ignore-submodules 'ignore_submodules' || ignore_submodules=all
+
+local ahead_formatted behind_formatted branch_formatted clean_formatted \
+    commit_formatted dirty_formatted indexed_formatted unindexed_formatted \
+    position_formatted remote_formatted action_formatted stashed_formatted \
+    untracked_formatted diverged_formatted line
+
+# cmds contains array of commands to be run asynchronously.
+# The output of each command must end with at least one line break.
+local -a cmds
+
+local action_format
+if zstyle -s ':zim:git-info:action' format 'action_format'; then
+  cmds+=("print -n 's:'; git-action")
+fi
+local stashed_format
+if zstyle -s ':zim:git-info:stashed' format 'stashed_format'; then
+  cmds+=("print -n 'S:'; command git stash list 2>/dev/null | command wc -l")
+fi
+
 if [[ -n ${__GIT_INFO_BRANCH} ]]; then
   unset __GIT_INFO_POSITION
 
@@ -57,16 +53,9 @@ if [[ -n ${__GIT_INFO_BRANCH} ]]; then
     zformat -f branch_formatted ${branch_format} 'b:${__GIT_INFO_BRANCH}'
   fi
 
-  # Format remote.
   local remote_format
   if zstyle -s ':zim:git-info:remote' format 'remote_format'; then
-    # Gets the remote name.
-    __GIT_INFO_REMOTE=${"$(command git rev-parse --symbolic-full-name --verify HEAD@{upstream} 2>/dev/null)"##refs/remotes/}
-    if [[ -n ${__GIT_INFO_REMOTE} ]]; then
-      zformat -f remote_formatted ${remote_format} 'R:${__GIT_INFO_REMOTE}'
-    else
-      unset __GIT_INFO_REMOTE
-    fi
+    cmds+=("print -n 'R:'; command git rev-parse --symbolic-full-name --verify HEAD@{upstream} 2>/dev/null; print")
   fi
 
   local ahead_format behind_format diverged_format
@@ -74,85 +63,44 @@ if [[ -n ${__GIT_INFO_BRANCH} ]]; then
   zstyle -s ':zim:git-info:behind' format 'behind_format'
   zstyle -s ':zim:git-info:diverged' format 'diverged_format'
   if [[ -n ${ahead_format} || -n ${behind_format} || -n ${diverged_format} ]]; then
-    # Get ahead and behind counts.
-    local -i ahead behind
-    read -r ahead behind < <(command git rev-list --count --left-right HEAD...@{upstream} 2>/dev/null)
-
-    if [[ -n ${diverged_format} && ${ahead} -gt 0 && ${behind} -gt 0 ]]; then
-      # Format diverged.
-      diverged_formatted=${diverged_format}
-    else
-      # Format ahead.
-      if [[ -n ${ahead_format} && ${ahead} -gt 0 ]]; then
-        zformat -f ahead_formatted ${ahead_format} "A:${ahead}"
-      fi
-      # Format behind.
-      if [[ -n ${behind_format} && ${behind} -gt 0 ]]; then
-        zformat -f behind_formatted ${behind_format} "B:${behind}"
-      fi
-    fi
+    cmds+=("print -n 'A:'; command git rev-list --count --left-right HEAD...@{upstream} 2>/dev/null; print")
   fi
 else
   unset __GIT_INFO_BRANCH
   unset __GIT_INFO_REMOTE
 
-  # Format commit.
   local commit_format
   if zstyle -s ':zim:git-info:commit' format 'commit_format'; then
-    local -r commit=$(command git rev-parse --short HEAD 2>/dev/null)
-    if [[ -n ${commit} ]]; then
-      zformat -f commit_formatted ${commit_format} "c:${commit}"
-    fi
+    cmds+=("print -n 'c:'; command git rev-parse --short HEAD 2>/dev/null; print")
   fi
 
-  # Format position.
   local position_format
   if zstyle -s ':zim:git-info:position' format 'position_format'; then
-    __GIT_INFO_POSITION=$(command git describe --contains --all HEAD 2>/dev/null)
-    if [[ -n ${__GIT_INFO_POSITION} ]]; then
-      zformat -f position_formatted ${position_format} 'p:${__GIT_INFO_POSITION}'
-    fi
+    cmds+=("print -n 'p:'; command git describe --contains --all HEAD 2>/dev/null; print")
   fi
 fi
 
 # Dirty and clean format.
-local dirty_format dirty_formatted clean_format clean_formatted
+local dirty_format clean_format
 zstyle -s ':zim:git-info:dirty' format 'dirty_format'
 zstyle -s ':zim:git-info:clean' format 'clean_format'
 
 local -i dirty
-local indexed_formatted unindexed_formatted untracked_formatted
 if ! zstyle -t ':zim:git-info' verbose; then
-  # Format unindexed.
   local unindexed_format
   zstyle -s ':zim:git-info:unindexed' format 'unindexed_format'
   if [[ -n ${unindexed_format} || -n ${dirty_format} || -n ${clean_format} ]]; then
-    if ! command git diff --no-ext-diff --quiet --ignore-submodules=${ignore_submodules} &>/dev/null; then
-      unindexed_formatted=${unindexed_format}
-      dirty=1
-    fi
+    cmds+=("print -n 'I:'; command git diff --no-ext-diff --quiet --ignore-submodules=${ignore_submodules} &>/dev/null; print \${?}")
   fi
 
-  # Format indexed.
   local indexed_format
   zstyle -s ':zim:git-info:indexed' format 'indexed_format'
   if [[ -n ${indexed_format} || (${dirty} -eq 0 && (-n ${dirty_format} || -n ${clean_format})) ]]; then
-    if ! command git diff-index --no-ext-diff --quiet --cached --ignore-submodules=${ignore_submodules} HEAD &>/dev/null; then
-      indexed_formatted=${indexed_format}
-      dirty=1
-    fi
-  fi
-
-  # Format dirty and clean.
-  if (( dirty )); then
-    dirty_formatted=${dirty_format}
-  else
-    clean_formatted=${clean_format}
+    cmds+=("print -n 'i:'; command git diff-index --no-ext-diff --quiet --cached --ignore-submodules=${ignore_submodules} HEAD &>/dev/null; print \${?}")
   fi
 else
   local -i indexed unindexed untracked
   # Get current status.
-  local line
   while IFS= read -r line; do
     if [[ ${line:0:2} == '??' ]]; then
       (( untracked++ ))
@@ -183,13 +131,87 @@ else
     zstyle -s ':zim:git-info:untracked' format 'untracked_format'
     zformat -f untracked_formatted ${untracked_format} "u:${untracked}"
   fi
+fi
 
-  # Format dirty and clean.
-  if (( dirty )); then
-    zformat -f dirty_formatted ${dirty_format} "u:${dirty}"
-  else
-    clean_formatted=${clean_format}
+# Run cmds asynchronously.
+eval cat "<(${^cmds[@]})" | while IFS= read -r line; do
+  if [[ -n ${line} ]]; then
+    case ${line%%:*} in
+      s)
+        # Format action.
+        local -r special_action=${line#s:}
+        if [[ -n ${special_action} ]]; then
+          local special_action_formatted
+          zstyle -s ":zim:git-info:action:${special_action}" format 'special_action_formatted' || special_action_formatted=${special_action}
+          zformat -f action_formatted ${action_format} "s:${special_action_formatted}"
+        fi
+        ;;
+      S)
+        # Format stashed.
+        local -ri stashed=${line#S:}
+        if (( stashed )) zformat -f stashed_formatted ${stashed_format} "S:${stashed}"
+        ;;
+      R)
+        # Format remote.
+        __GIT_INFO_REMOTE=${${line#R:}#refs/remotes/}
+        if [[ -n ${__GIT_INFO_REMOTE} ]]; then
+          zformat -f remote_formatted ${remote_format} 'R:${__GIT_INFO_REMOTE}'
+        fi
+        ;;
+      A)
+        local -r ahead_and_behind=${line#A:}
+        if [[ -n ${ahead_and_behind} ]]; then
+          local -ri ahead=${ahead_and_behind[(w)1]}
+          local -ri behind=${ahead_and_behind[(w)2]}
+          if [[ -n ${diverged_format} && ${ahead} -gt 0 && ${behind} -gt 0 ]]; then
+            # Format diverged.
+            diverged_formatted=${diverged_format}
+          else
+            # Format ahead.
+            if [[ -n ${ahead_format} && ${ahead} -gt 0 ]]; then
+              zformat -f ahead_formatted ${ahead_format} "A:${ahead}"
+            fi
+            # Format behind.
+            if [[ -n ${behind_format} && ${behind} -gt 0 ]]; then
+              zformat -f behind_formatted ${behind_format} "B:${behind}"
+            fi
+          fi
+        fi
+        ;;
+      c)
+        # Format commit.
+        if [[ -n ${line#c:} ]] zformat -f commit_formatted ${commit_format} ${line}
+        ;;
+      p)
+        # Format position.
+        __GIT_INFO_POSITION=${line#p:}
+        if [[ -n ${__GIT_INFO_POSITION} ]]; then
+          zformat -f position_formatted ${position_format} 'p:${__GIT_INFO_POSITION}'
+        fi
+        ;;
+      I)
+        # Format unindexed.
+        if (( ${line#I:} )); then
+          unindexed_formatted=${unindexed_format}
+          dirty=1
+        fi
+        ;;
+      i)
+        # Format indexed.
+        if (( ${line#i:} )); then
+          indexed_formatted=${indexed_format}
+          dirty=1
+        fi
+        ;;
+    esac
   fi
+done
+
+# Format dirty and clean.
+if (( dirty )); then
+  zformat -f dirty_formatted ${dirty_format} "D:${dirty}"
+else
+  clean_formatted=${clean_format}
 fi
 
 # Format info.

@@ -30,6 +30,8 @@ elif [[ -f ${gitdir}/CHERRY_PICK_HEAD ]]; then
 elif [[ -f ${gitdir}/BISECT_LOG ]]; then
   print bisect
 else
+  # Make sure there's always a line break in the output for git-info.
+  print
   return 1
 fi
 return 0
