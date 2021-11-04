@@ -41,7 +41,7 @@ if zstyle -s ':zim:git-info:action' format 'action_format'; then
 fi
 local stashed_format
 if zstyle -s ':zim:git-info:stashed' format 'stashed_format'; then
-  cmds+=("print -n 'S:'; command git stash list 2>/dev/null | command wc -l")
+  cmds+=("print -n 'S:'; command git rev-list --walk-reflogs --count refs/stash -- 2>/dev/null; print")
 fi
 
 if [[ -n ${__GIT_INFO_BRANCH} ]]; then
@@ -148,8 +148,7 @@ eval cat "<(${^cmds[@]})" | while IFS= read -r line; do
         ;;
       S)
         # Format stashed.
-        local -ri stashed=${line#S:}
-        if (( stashed )) zformat -f stashed_formatted ${stashed_format} "S:${stashed}"
+        if (( ${line#S:} )) zformat -f stashed_formatted ${stashed_format} ${line}
         ;;
       R)
         # Format remote.
