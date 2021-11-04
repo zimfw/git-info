@@ -127,7 +127,7 @@ if ! zstyle -t ':zim:git-info' verbose; then
   local unindexed_format
   zstyle -s ':zim:git-info:unindexed' format 'unindexed_format'
   if [[ -n ${unindexed_format} || -n ${dirty_format} || -n ${clean_format} ]]; then
-    if ! command git diff-files --no-ext-diff --quiet --ignore-submodules=${ignore_submodules} &>/dev/null; then
+    if ! command git diff --no-ext-diff --quiet --ignore-submodules=${ignore_submodules} &>/dev/null; then
       unindexed_formatted=${unindexed_format}
       dirty=1
     fi
