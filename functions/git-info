@@ -7,9 +7,10 @@
 unset git_info
 typeset -gA git_info
 
-# Return if not inside a Git repository work tree.
+# Return if not inside a Git repository work tree. .git can be either a
+# directory or a file, see https://git-scm.com/docs/gitrepository-layout
 local git_root=${PWD}
-while [[ ! -d ${git_root}/.git ]]; do
+while [[ ! -e ${git_root}/.git ]]; do
   if [[ ${git_root} == / ]] return 1
   git_root=${git_root:h}
 done
@@ -24,7 +25,7 @@ done
 
 # Get the branch.
 typeset -g __GIT_INFO_BRANCH
-__GIT_INFO_BRANCH=$(command git --git-dir=${git_root}/.git symbolic-ref -q --short HEAD 2>/dev/null)
+__GIT_INFO_BRANCH=$(command git symbolic-ref -q --short HEAD 2>/dev/null)
 if (( ? == 128 )) return 1
 
 # Ignore submodule status.
@@ -49,7 +50,7 @@ if zstyle -s ':zim:git-info:action' format 'action_format'; then
 fi
 local stashed_format
 if zstyle -s ':zim:git-info:stashed' format 'stashed_format'; then
-  cmds+=("print -n 'S:'; command git --git-dir=${git_root}/.git rev-list --walk-reflogs --count refs/stash -- 2>/dev/null; print")
+  cmds+=("print -n 'S:'; command git rev-list --walk-reflogs --count refs/stash -- 2>/dev/null; print")
 fi
 
 if [[ -n ${__GIT_INFO_BRANCH} ]]; then
@@ -63,7 +64,7 @@ if [[ -n ${__GIT_INFO_BRANCH} ]]; then
 
   local remote_format
   if zstyle -s ':zim:git-info:remote' format 'remote_format'; then
-    cmds+=("print -n 'R:'; command git --git-dir=${git_root}/.git rev-parse --symbolic-full-name --verify HEAD@{upstream} 2>/dev/null; print")
+    cmds+=("print -n 'R:'; command git rev-parse --symbolic-full-name --verify HEAD@{upstream} 2>/dev/null; print")
   fi
 
   local ahead_format behind_format diverged_format
@@ -71,7 +72,7 @@ if [[ -n ${__GIT_INFO_BRANCH} ]]; then
   zstyle -s ':zim:git-info:behind' format 'behind_format'
   zstyle -s ':zim:git-info:diverged' format 'diverged_format'
   if [[ -n ${ahead_format} || -n ${behind_format} || -n ${diverged_format} ]]; then
-    cmds+=("print -n 'A:'; command git --git-dir=${git_root}/.git rev-list --count --left-right HEAD...@{upstream} -- 2>/dev/null; print")
+    cmds+=("print -n 'A:'; command git rev-list --count --left-right HEAD...@{upstream} -- 2>/dev/null; print")
   fi
 else
   unset __GIT_INFO_BRANCH
@@ -79,12 +80,12 @@ else
 
   local commit_format
   if zstyle -s ':zim:git-info:commit' format 'commit_format'; then
-    cmds+=("print -n 'c:'; command git --git-dir=${git_root}/.git rev-parse --short HEAD 2>/dev/null; print")
+    cmds+=("print -n 'c:'; command git rev-parse --short HEAD 2>/dev/null; print")
   fi
 
   local position_format
   if zstyle -s ':zim:git-info:position' format 'position_format'; then
-    cmds+=("print -n 'p:'; command git --git-dir=${git_root}/.git describe --contains --all HEAD 2>/dev/null; print")
+    cmds+=("print -n 'p:'; command git describe --contains --all HEAD 2>/dev/null; print")
   fi
 fi
 
@@ -98,13 +99,13 @@ if ! zstyle -t ':zim:git-info' verbose; then
   local unindexed_format
   zstyle -s ':zim:git-info:unindexed' format 'unindexed_format'
   if [[ -n ${unindexed_format} || -n ${dirty_format} || -n ${clean_format} ]]; then
-    cmds+=("print -n 'I:'; command git --git-dir=${git_root}/.git diff --no-ext-diff --quiet --ignore-submodules=${ignore_submodules} &>/dev/null; print \${?}")
+    cmds+=("print -n 'I:'; command git diff --no-ext-diff --quiet --ignore-submodules=${ignore_submodules} &>/dev/null; print \${?}")
   fi
 
   local indexed_format
   zstyle -s ':zim:git-info:indexed' format 'indexed_format'
   if [[ -n ${indexed_format} || (${dirty} -eq 0 && (-n ${dirty_format} || -n ${clean_format})) ]]; then
-    cmds+=("print -n 'i:'; command git --git-dir=${git_root}/.git diff-index --no-ext-diff --quiet --cached --ignore-submodules=${ignore_submodules} HEAD &>/dev/null; print \${?}")
+    cmds+=("print -n 'i:'; command git diff-index --no-ext-diff --quiet --cached --ignore-submodules=${ignore_submodules} HEAD &>/dev/null; print \${?}")
   fi
 else
   local -i indexed unindexed untracked
@@ -117,7 +118,7 @@ else
       if [[ ${line:1:1} != ' ' ]] (( unindexed++ ))
     fi
     (( dirty++ ))
-  done < <(command git --git-dir=${git_root}/.git status --porcelain --ignore-submodules=${ignore_submodules} 2>/dev/null)
+  done < <(command git status --porcelain --ignore-submodules=${ignore_submodules} 2>/dev/null)
 
   # Format indexed.
   if (( indexed )); then
