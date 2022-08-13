@@ -123,4 +123,4 @@ RPS1='${(e)git_info[rprompt]}'
 [Sorin Ionescu]: https://github.com/sorin-ionescu
 [Colin Hebert]: https://github.com/ColinHebert
 [minimum required version]: https://github.com/sorin-ionescu/prezto/issues/219
-['detached HEAD' state]: http://gitfaq.org/articles/what-is-a-detached-head.html
+['detached HEAD' state]: https://git-scm.com/docs/git-checkout#_detached_head
