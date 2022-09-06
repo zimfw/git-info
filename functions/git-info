@@ -143,77 +143,79 @@ else
 fi
 
 # Run cmds asynchronously.
-eval cat "<(${^cmds[@]})" | while IFS= read -r line; do
-  if [[ -n ${line} ]]; then
-    case ${line%%:*} in
-      s)
-        # Format action.
-        local -r special_action=${line#s:}
-        if [[ -n ${special_action} ]]; then
-          local special_action_formatted
-          zstyle -s ":zim:git-info:action:${special_action}" format 'special_action_formatted' || special_action_formatted=${special_action}
-          zformat -f action_formatted ${action_format} "s:${special_action_formatted}"
-        fi
-        ;;
-      S)
-        # Format stashed.
-        if (( ${line#S:} )) zformat -f stashed_formatted ${stashed_format} ${line}
-        ;;
-      R)
-        # Format remote.
-        typeset -g __GIT_INFO_REMOTE=${${line#R:}#refs/remotes/}
-        if [[ -n ${__GIT_INFO_REMOTE} ]]; then
-          zformat -f remote_formatted ${remote_format} 'R:${__GIT_INFO_REMOTE}'
-        fi
-        ;;
-      A)
-        local -r ahead_and_behind=${line#A:}
-        if [[ -n ${ahead_and_behind} ]]; then
-          local -ri ahead=${ahead_and_behind[(w)1]}
-          local -ri behind=${ahead_and_behind[(w)2]}
-          if [[ -n ${diverged_format} && ${ahead} -gt 0 && ${behind} -gt 0 ]]; then
-            # Format diverged.
-            diverged_formatted=${diverged_format}
-          else
-            # Format ahead.
-            if [[ -n ${ahead_format} && ${ahead} -gt 0 ]]; then
-              zformat -f ahead_formatted ${ahead_format} "A:${ahead}"
-            fi
-            # Format behind.
-            if [[ -n ${behind_format} && ${behind} -gt 0 ]]; then
-              zformat -f behind_formatted ${behind_format} "B:${behind}"
+if (( ${#cmds} )); then
+  eval cat "<(${^cmds[@]})" | while IFS= read -r line; do
+    if [[ -n ${line} ]]; then
+      case ${line%%:*} in
+        s)
+          # Format action.
+          local -r special_action=${line#s:}
+          if [[ -n ${special_action} ]]; then
+            local special_action_formatted
+            zstyle -s ":zim:git-info:action:${special_action}" format 'special_action_formatted' || special_action_formatted=${special_action}
+            zformat -f action_formatted ${action_format} "s:${special_action_formatted}"
+          fi
+          ;;
+        S)
+          # Format stashed.
+          if (( ${line#S:} )) zformat -f stashed_formatted ${stashed_format} ${line}
+          ;;
+        R)
+          # Format remote.
+          typeset -g __GIT_INFO_REMOTE=${${line#R:}#refs/remotes/}
+          if [[ -n ${__GIT_INFO_REMOTE} ]]; then
+            zformat -f remote_formatted ${remote_format} 'R:${__GIT_INFO_REMOTE}'
+          fi
+          ;;
+        A)
+          local -r ahead_and_behind=${line#A:}
+          if [[ -n ${ahead_and_behind} ]]; then
+            local -ri ahead=${ahead_and_behind[(w)1]}
+            local -ri behind=${ahead_and_behind[(w)2]}
+            if [[ -n ${diverged_format} && ${ahead} -gt 0 && ${behind} -gt 0 ]]; then
+              # Format diverged.
+              diverged_formatted=${diverged_format}
+            else
+              # Format ahead.
+              if [[ -n ${ahead_format} && ${ahead} -gt 0 ]]; then
+                zformat -f ahead_formatted ${ahead_format} "A:${ahead}"
+              fi
+              # Format behind.
+              if [[ -n ${behind_format} && ${behind} -gt 0 ]]; then
+                zformat -f behind_formatted ${behind_format} "B:${behind}"
+              fi
             fi
           fi
-        fi
-        ;;
-      c)
-        # Format commit.
-        if [[ -n ${line#c:} ]] zformat -f commit_formatted ${commit_format} ${line}
-        ;;
-      p)
-        # Format position.
-        typeset -g __GIT_INFO_POSITION=${line#p:}
-        if [[ -n ${__GIT_INFO_POSITION} ]]; then
-          zformat -f position_formatted ${position_format} 'p:${__GIT_INFO_POSITION}'
-        fi
-        ;;
-      I)
-        # Format unindexed.
-        if (( ${line#I:} )); then
-          unindexed_formatted=${unindexed_format}
-          dirty=1
-        fi
-        ;;
-      i)
-        # Format indexed.
-        if (( ${line#i:} )); then
-          indexed_formatted=${indexed_format}
-          dirty=1
-        fi
-        ;;
-    esac
-  fi
-done
+          ;;
+        c)
+          # Format commit.
+          if [[ -n ${line#c:} ]] zformat -f commit_formatted ${commit_format} ${line}
+          ;;
+        p)
+          # Format position.
+          typeset -g __GIT_INFO_POSITION=${line#p:}
+          if [[ -n ${__GIT_INFO_POSITION} ]]; then
+            zformat -f position_formatted ${position_format} 'p:${__GIT_INFO_POSITION}'
+          fi
+          ;;
+        I)
+          # Format unindexed.
+          if (( ${line#I:} )); then
+            unindexed_formatted=${unindexed_format}
+            dirty=1
+          fi
+          ;;
+        i)
+          # Format indexed.
+          if (( ${line#i:} )); then
+            indexed_formatted=${indexed_format}
+            dirty=1
+          fi
+          ;;
+      esac
+    fi
+  done
+fi
 
 # Format dirty and clean.
 if (( dirty )); then
