@@ -3,6 +3,9 @@
 # Exposes Git repository information via the git_info associative array.
 #
 
+# Multios is needed to run cmds in parallel.
+builtin emulate -L zsh -o MULTIOS
+
 # Clean up previous git_info.
 unset git_info
 typeset -gA git_info
@@ -36,9 +39,6 @@ local ahead_formatted behind_formatted branch_formatted clean_formatted \
     commit_formatted dirty_formatted indexed_formatted unindexed_formatted \
     position_formatted remote_formatted action_formatted stashed_formatted \
     untracked_formatted diverged_formatted line
-
-# Multios is needed to run cmds in parallel.
-setopt LOCAL_OPTIONS MULTIOS
 
 # cmds contains array of commands to be run asynchronously.
 # The output of each command must end with at least one line break.

@@ -1,6 +1,7 @@
 # vim:et sts=2 sw=2 ft=zsh
 # Borrowed from git_repository_state function in
 # https://github.com/libgit2/libgit2/blob/master/src/repository.c
+builtin emulate -L zsh
 
 local -r gitdir=${"$(command git rev-parse --git-dir)":A}
 if [[ -f ${gitdir}/rebase-merge/interactive ]]; then
