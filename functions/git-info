@@ -64,7 +64,7 @@ if [[ -n ${__GIT_INFO_BRANCH} ]]; then
 
   local remote_format
   if zstyle -s ':zim:git-info:remote' format 'remote_format'; then
-    cmds+=("print -n 'R:'; command git rev-parse --symbolic-full-name --verify HEAD@{upstream} 2>/dev/null; print")
+    cmds+=("print -n 'R:'; command git rev-parse --symbolic-full-name --verify @{u} 2>/dev/null; print")
   fi
 
   local ahead_format behind_format diverged_format
@@ -72,7 +72,7 @@ if [[ -n ${__GIT_INFO_BRANCH} ]]; then
   zstyle -s ':zim:git-info:behind' format 'behind_format'
   zstyle -s ':zim:git-info:diverged' format 'diverged_format'
   if [[ -n ${ahead_format} || -n ${behind_format} || -n ${diverged_format} ]]; then
-    cmds+=("print -n 'A:'; command git rev-list --count --left-right HEAD...@{upstream} -- 2>/dev/null; print")
+    cmds+=("print -n 'A:'; command git rev-list --count --left-right ..@{u} -- 2>/dev/null; print")
   fi
 else
   unset __GIT_INFO_BRANCH
