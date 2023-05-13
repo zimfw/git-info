@@ -72,7 +72,7 @@ if [[ -n ${__GIT_INFO_BRANCH} ]]; then
   zstyle -s ':zim:git-info:behind' format 'behind_format'
   zstyle -s ':zim:git-info:diverged' format 'diverged_format'
   if [[ -n ${ahead_format} || -n ${behind_format} || -n ${diverged_format} ]]; then
-    cmds+=("print -n 'A:'; command git rev-list --count --left-right ..@{u} -- 2>/dev/null; print")
+    cmds+=("print -n 'A:'; command git rev-list --count --left-right ...@{u} -- 2>/dev/null; print")
   fi
 else
   unset __GIT_INFO_BRANCH
