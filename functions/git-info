@@ -110,7 +110,7 @@ if ! zstyle -t ':zim:git-info' verbose; then
 else
   local -i indexed unindexed untracked
   # Get current status.
-  while IFS= read -r line; do
+  command git status --porcelain --ignore-submodules=${ignore_submodules} 2>/dev/null | while IFS= read -r line; do
     if [[ ${line:0:2} == '??' ]]; then
       (( untracked++ ))
     else
@@ -118,7 +118,7 @@ else
       if [[ ${line:1:1} != ' ' ]] (( unindexed++ ))
     fi
     (( dirty++ ))
-  done < <(command git status --porcelain --ignore-submodules=${ignore_submodules} 2>/dev/null)
+  done
 
   # Format indexed.
   if (( indexed )); then
