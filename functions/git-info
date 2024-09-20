@@ -114,8 +114,12 @@ if ! zstyle -t ':zim:git-info' verbose; then
   
   local deleted_format
   zstyle -s ':zim:git-info:added' format 'deleted_format'
+
   local modified_format
+  zstyle -s ':zim:git-info:added' format 'modified_format'
+
   local renamed_format
+  zstyle -s ':zim:git-info:added' format 'renamed_format'
 else
   local -i indexed unindexed untracked added deleted modified renamed
   # Get current status.
