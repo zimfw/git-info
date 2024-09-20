@@ -131,8 +131,10 @@ else
       if [[ ${line:1:1} != ' ' ]] (( unindexed++ ))
 
       if [[ ${line:0:1} == 'A' ]] ((added++))
+      if [[ ${line:0:1} == 'M' ]] ((modified++))
       if [[ ${line:1:1} == 'M' ]] ((modified++))
       if [[ ${line:0:1} == 'D' ]] ((deleted++))
+      if [[ ${line:1:1} == 'D' ]] ((deleted++))
       if [[ ${line:0:1} == 'R' ]] ((renamed++))
       
     fi
