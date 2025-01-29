@@ -50,7 +50,7 @@ following syntax to define custom styles for each context you want displayed:
 | dirty     |  %D  | Dirty state (count with untracked files when verbose mode enabled)
 | indexed   |  %i  | Indexed files (count when verbose mode enabled)
 | unindexed |  %I  | Unindexed files (count when verbose mode enabled)
-| position  |  %p  | Commits from nearest tag count (when in 'detached HEAD' state)
+| position  |  %p  | Name of tag that contains current commit (when in 'detached HEAD' state)
 | remote    |  %R  | Remote name
 | stashed   |  %S  | Stashed states count
 | untracked |  %u  | Untracked files count (only when verbose mode enabled)

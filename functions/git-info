@@ -85,7 +85,7 @@ else
 
   local position_format
   if zstyle -s ':zim:git-info:position' format 'position_format'; then
-    cmds+=("print -n 'p:'; command git describe --contains --all HEAD 2>/dev/null; print")
+    cmds+=("print -n 'p:'; command git describe --contains 2>/dev/null; print")
   fi
 fi
 
