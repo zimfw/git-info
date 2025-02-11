@@ -54,6 +54,10 @@ following syntax to define custom styles for each context you want displayed:
 | remote    |  %R  | Remote name
 | stashed   |  %S  | Stashed states count
 | untracked |  %u  | Untracked files count (only when verbose mode enabled)
+| added     |  %a  | Added files count (only when verbose mode enabled)
+| modified  |  %m  | Modified files count (only when verbose mode enabled)
+| deleted   |  %d  | Deleted files count (only when verbose mode enabled)
+| renamed   |  %r  | Renamed files count (only when verbose mode enabled)
 
 While the commit and position contexts are only available when in ['detached
 HEAD' state], on the other hand, the ahead, behind, diverged, branch and remote
