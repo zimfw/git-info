@@ -53,6 +53,7 @@ following syntax to define custom styles for each context you want displayed:
 | position  |  %p  | Name of tag that contains current commit (when in 'detached HEAD' state)
 | remote    |  %R  | Remote name
 | stashed   |  %S  | Stashed states count
+| ummerged  |  %U  | Unmerged files count (only when verbose mode enabled, both indexed and unindexed are yield when it's not defined)
 | untracked |  %u  | Untracked files count (only when verbose mode enabled)
 
 While the commit and position contexts are only available when in ['detached
