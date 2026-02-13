@@ -4,7 +4,7 @@ builtin emulate -L zsh
 
 local arg
 for arg in ${argv}; do
-  print -n ${arg}
+  print ${arg}
   return 0
 done
 return 1

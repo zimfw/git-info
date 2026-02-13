@@ -24,9 +24,8 @@ and the git version being used. It can be enabled with the following zstyle:
 
     zstyle ':zim:git-info' verbose yes
 
-In non-verbose mode, the untracked context is not available (see *Main contexts*
-below), and untracked files are also not considered for computing the dirty
-context.
+In non-verbose mode, the untracked context is not available, and untracked files
+are also not considered for computing the dirty context.
 
 Theming
 -------
@@ -49,17 +48,39 @@ following syntax to define custom styles for each context you want displayed:
 | clean     |  %C  | Clean state
 | dirty     |  %D  | Dirty state (count with untracked files when verbose mode enabled)
 | indexed   |  %i  | Indexed files (count when verbose mode enabled)
-| unindexed |  %I  | Unindexed files (count when verbose mode enabled)
+| unindexed |  %I  | Working tree files (count when verbose mode enabled)
 | position  |  %p  | Name of tag that contains current commit (when in 'detached HEAD' state)
 | remote    |  %R  | Remote name
 | stashed   |  %S  | Stashed states count
-| ummerged  |  %U  | Unmerged files count (only when verbose mode enabled, both indexed and unindexed are yield when it's not defined)
-| untracked |  %u  | Untracked files count (only when verbose mode enabled)
 
 While the commit and position contexts are only available when in ['detached
 HEAD' state], on the other hand, the ahead, behind, diverged, branch and remote
 contexts are only available when an actual branch is checked out (so when
 **not** in 'detached HEAD' state).
+
+### Verbose mode contexts
+
+The following contexts are only available when verbose mode is enabled:
+
+| Name           | Code | Description
+| -------------- | :--: | ------------------------------------------------------
+| index-added    |  %a  | Indexed added files count (indexed is yield when it's not defined)
+| index-deleted  |  %x  | Indexed deleted files count (indexed is yield when it's not defined)
+| index-renamed  |  %r  | Indexed renamed files count (indexed is yield when it's not defined)
+| index-modified |  %m  | Indexed modified files count (indexed is yield when it's not defined)
+| work-deleted   |  %X  | Working tree deleted files count (unindexed is yield when it's not defined)
+| work-modified  |  %M  | Working tree modified files count (unindexed is yield when it's not defined)
+| ummerged       |  %U  | Unmerged files count (both indexed and unindexed are yield when it's not defined)
+| untracked      |  %u  | Untracked files count
+
+Note how, except for the untracked context, the files count fall back to the
+indexed and unindexed contexts when some of the contexts above are not defined.
+This is so you can choose the level of detail you want by defining the contexts
+for which you want a separate indicator to be shown, and then using indexed and
+unindexed for the remainder. Note also that if you define all index- contexts,
+then nothing will be left to be counted under indexed and, likewise, if you
+define all work- contexts, then nothing will be counted under unindexed, so you
+don't need to define the latter ones in these cases.
 
 ### Special action contexts
 
