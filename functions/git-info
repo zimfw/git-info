@@ -96,8 +96,15 @@ zstyle -s ':zim:git-info:unindexed' format 'unindexed_format'
 zstyle -s ':zim:git-info:indexed' format 'indexed_format'
 zstyle -s ':zim:git-info:dirty' format 'dirty_format'
 zstyle -s ':zim:git-info:clean' format 'clean_format'
-local -i dirty
-if ! zstyle -t ':zim:git-info' verbose; then
+local -i dirty hide_dirty
+# Skip the expensive working tree and index status checks when hide-dirty is
+# enabled in git config.
+if [[ $(command git config --bool zim.git-info.hide-dirty 2>/dev/null) == true ]]; then
+  hide_dirty=1
+fi
+if (( hide_dirty )); then
+  : # Dirty state is unknown, so no status contexts are formatted.
+elif ! zstyle -t ':zim:git-info' verbose; then
   if [[ -n ${unindexed_format} || -n ${dirty_format} || -n ${clean_format} ]]; then
     cmds+=("print -n 'I:'; command git diff --no-ext-diff --quiet --ignore-submodules=${ignore_submodules} &>/dev/null; print \${?}")
   fi
@@ -289,7 +296,7 @@ fi
 # Format dirty and clean.
 if (( dirty )); then
   zformat -f dirty_formatted ${dirty_format} "D:${dirty}"
-else
+elif (( ! hide_dirty )); then
   clean_formatted=${clean_format}
 fi
 

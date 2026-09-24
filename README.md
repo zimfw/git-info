@@ -16,6 +16,17 @@ So by default 'all' submodules are ignored. Optionally, 'untracked', 'dirty', or
 
     zstyle ':zim:git-info' ignore-submodules 'none'
 
+### Hide dirty
+
+Checking whether the working tree or index is dirty can be very slow in large
+repositories. These checks can be skipped entirely by enabling hide-dirty with
+git config, either per repository or globally (with `--global`):
+
+    git config zim.git-info.hide-dirty true
+
+When hide-dirty is enabled, the clean, dirty, indexed, unindexed and all
+verbose mode contexts are not displayed.
+
 ### Verbose mode
 
 Verbose mode uses `git status` and computes the count of indexed, unindexed and
