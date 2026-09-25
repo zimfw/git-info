@@ -96,8 +96,9 @@ zstyle -s ':zim:git-info:unindexed' format 'unindexed_format'
 zstyle -s ':zim:git-info:indexed' format 'indexed_format'
 zstyle -s ':zim:git-info:dirty' format 'dirty_format'
 zstyle -s ':zim:git-info:clean' format 'clean_format'
-local -i dirty
-if [[ $(command git config --bool zim.hide-dirty) != true ]]; then
+local -i dirty hide_dirty
+if [[ $(command git config --bool zim.hide-dirty) == true ]] hide_dirty=1
+if (( ! hide_dirty )); then
   if ! zstyle -t ':zim:git-info' verbose; then
     if [[ -n ${unindexed_format} || -n ${dirty_format} || -n ${clean_format} ]]; then
       cmds+=("print -n 'I:'; command git diff --no-ext-diff --quiet --ignore-submodules=${ignore_submodules} &>/dev/null; print \${?}")
