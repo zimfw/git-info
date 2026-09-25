@@ -1,7 +1,7 @@
 git-info
 ========
 
-Exposes git repository status information to prompts.
+Exposes git repository information to prompts.
 
 Many thanks to [Sorin Ionescu] and [Colin Hebert] for the original code.
 
@@ -10,7 +10,7 @@ Settings
 
 ### Ignore submodules
 
-Retrieving the status of a repository with submodules can take a long time.
+Retrieving the information of a repository with submodules can take a long time.
 So by default 'all' submodules are ignored. Optionally, 'untracked', 'dirty', or
 'none' submodules can be ignored:
 
@@ -18,14 +18,11 @@ So by default 'all' submodules are ignored. Optionally, 'untracked', 'dirty', or
 
 ### Hide dirty
 
-Checking whether the working tree or index is dirty can be very slow in large
-repositories. These checks can be skipped entirely by enabling hide-dirty with
-git config, either per repository or globally (with `--global`):
+Retrieving the working tree status can be very slow in a large repository. To
+disable the clean, dirty, indexed, unindexed and all verbose mode contexts, set
+the following git config, either per repository or globally (with `--global`):
 
-    git config zim.git-info.hide-dirty true
-
-When hide-dirty is enabled, the clean, dirty, indexed, unindexed and all
-verbose mode contexts are not displayed.
+    git config zim.hide-dirty true
 
 ### Verbose mode
 
