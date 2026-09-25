@@ -96,118 +96,121 @@ zstyle -s ':zim:git-info:unindexed' format 'unindexed_format'
 zstyle -s ':zim:git-info:indexed' format 'indexed_format'
 zstyle -s ':zim:git-info:dirty' format 'dirty_format'
 zstyle -s ':zim:git-info:clean' format 'clean_format'
-local -i dirty
-if ! zstyle -t ':zim:git-info' verbose; then
-  if [[ -n ${unindexed_format} || -n ${dirty_format} || -n ${clean_format} ]]; then
-    cmds+=("print -n 'I:'; command git diff --no-ext-diff --quiet --ignore-submodules=${ignore_submodules} &>/dev/null; print \${?}")
-  fi
-  if [[ -n ${indexed_format} || -n ${dirty_format} || -n ${clean_format} ]]; then
-    cmds+=("print -n 'i:'; command git diff-index --no-ext-diff --quiet --cached --ignore-submodules=${ignore_submodules} HEAD -- &>/dev/null; print \${?}")
-  fi
-else
-  local -i indexed unindexed index_added index_deleted index_modified \
-      index_renamed work_deleted work_modified unmerged untracked
-  local index_added_format index_deleted_format index_modified_format \
-      index_renamed_format work_deleted_format work_modified_format unmerged_format untracked_format
-  zstyle -s ':zim:git-info:index-added' format 'index_added_format'
-  zstyle -s ':zim:git-info:index-deleted' format 'index_deleted_format'
-  zstyle -s ':zim:git-info:index-modified' format 'index_modified_format'
-  zstyle -s ':zim:git-info:index-renamed' format 'index_renamed_format'
-  zstyle -s ':zim:git-info:work-deleted' format 'work_deleted_format'
-  zstyle -s ':zim:git-info:work-modified' format 'work_modified_format'
-  zstyle -s ':zim:git-info:unmerged' format 'unmerged_format'
-  zstyle -s ':zim:git-info:untracked' format 'untracked_format'
-  # Get current status.
-  command git status --porcelain --ignore-submodules=${ignore_submodules} 2>/dev/null | while IFS= read -r line; do
-    if [[ ${line} == \?\?\ * ]]; then
-      (( untracked++ ))
-    elif [[ ${line} == (AA|DD|U?|?U)\ * ]]; then
-      if [[ -n ${unmerged_format} ]]; then
-        (( unmerged++ ))
-      else
-        (( indexed++, unindexed++ ))
-      fi
-    else
-      if [[ ${line} == [MT]?\ * ]]; then
-        if [[ -n ${index_modified_format} ]]; then
-          (( index_modified++ ))
-        else
-          (( indexed++ ))
-        fi
-      elif [[ ${line} == [AC]?\ * ]]; then
-        if [[ -n ${index_added_format} ]]; then
-          (( index_added++ ))
-        else
-          (( indexed++ ))
-        fi
-      elif [[ ${line} == D?\ * ]]; then
-        if [[ -n ${index_deleted_format} ]]; then
-          (( index_deleted++ ))
-        else
-          (( indexed++ ))
-        fi
-      elif [[ ${line} == R?\ * ]]; then
-        if [[ -n ${index_renamed_format} ]]; then
-          (( index_renamed++ ))
-        else
-          (( indexed++ ))
-        fi
-      fi
-      if [[ ${line} == ?[MTARC]\ * ]]; then
-        if [[ -n ${work_modified_format} ]]; then
-          (( work_modified++ ))
-        else
-          (( unindexed++ ))
-        fi
-      elif [[ ${line} == ?D\ * ]]; then
-        if [[ -n ${work_deleted_format} ]]; then
-          (( work_deleted++ ))
-        else
-          (( unindexed++ ))
-        fi
-      fi
+local -i dirty hide_dirty
+if [[ $(command git config --bool zim.hide-dirty) == true ]] hide_dirty=1
+if (( ! hide_dirty )); then
+  if ! zstyle -t ':zim:git-info' verbose; then
+    if [[ -n ${unindexed_format} || -n ${dirty_format} || -n ${clean_format} ]]; then
+      cmds+=("print -n 'I:'; command git diff --no-ext-diff --quiet --ignore-submodules=${ignore_submodules} &>/dev/null; print \${?}")
     fi
-    (( dirty++ ))
-  done
-  # Format indexed.
-  if (( indexed )); then
-    zformat -f indexed_formatted ${indexed_format} "i:${indexed}"
-  fi
-  # Format unindexed.
-  if (( unindexed )); then
-    zformat -f unindexed_formatted ${unindexed_format} "I:${unindexed}"
-  fi
-  # Format index-added.
-  if (( index_added )); then
-    zformat -f index_added_formatted "${index_added_format}" "a:${index_added}"
-  fi
-  # Format index-deleted.
-  if (( index_deleted )); then
-    zformat -f index_deleted_formatted "${index_deleted_format}" "x:${index_deleted}"
-  fi
-  # Format index-modified.
-  if (( index_modified )); then
-    zformat -f index_modified_formatted "${index_modified_format}" "m:${index_modified}"
-  fi
-  # Format index-renamed.
-  if (( index_renamed )); then
-    zformat -f index_renamed_formatted "${index_renamed_format}" "r:${index_renamed}"
-  fi
-  # Format work-deleted.
-  if (( work_deleted )); then
-    zformat -f work_deleted_formatted "${work_deleted_format}" "X:${work_deleted}"
-  fi
-  # Format work-modified.
-  if (( work_modified )); then
-    zformat -f work_modified_formatted "${work_modified_format}" "M:${work_modified}"
-  fi
-  # Format unmerged.
-  if (( unmerged )); then
-    zformat -f unmerged_formatted ${unmerged_format} "U:${unmerged}"
-  fi
-  # Format untracked.
-  if (( untracked )); then
-    zformat -f untracked_formatted ${untracked_format} "u:${untracked}"
+    if [[ -n ${indexed_format} || -n ${dirty_format} || -n ${clean_format} ]]; then
+      cmds+=("print -n 'i:'; command git diff-index --no-ext-diff --quiet --cached --ignore-submodules=${ignore_submodules} HEAD -- &>/dev/null; print \${?}")
+    fi
+  else
+    local -i indexed unindexed index_added index_deleted index_modified \
+        index_renamed work_deleted work_modified unmerged untracked
+    local index_added_format index_deleted_format index_modified_format \
+        index_renamed_format work_deleted_format work_modified_format unmerged_format untracked_format
+    zstyle -s ':zim:git-info:index-added' format 'index_added_format'
+    zstyle -s ':zim:git-info:index-deleted' format 'index_deleted_format'
+    zstyle -s ':zim:git-info:index-modified' format 'index_modified_format'
+    zstyle -s ':zim:git-info:index-renamed' format 'index_renamed_format'
+    zstyle -s ':zim:git-info:work-deleted' format 'work_deleted_format'
+    zstyle -s ':zim:git-info:work-modified' format 'work_modified_format'
+    zstyle -s ':zim:git-info:unmerged' format 'unmerged_format'
+    zstyle -s ':zim:git-info:untracked' format 'untracked_format'
+    # Get current status.
+    command git status --porcelain --ignore-submodules=${ignore_submodules} 2>/dev/null | while IFS= read -r line; do
+      if [[ ${line} == \?\?\ * ]]; then
+        (( untracked++ ))
+      elif [[ ${line} == (AA|DD|U?|?U)\ * ]]; then
+        if [[ -n ${unmerged_format} ]]; then
+          (( unmerged++ ))
+        else
+          (( indexed++, unindexed++ ))
+        fi
+      else
+        if [[ ${line} == [MT]?\ * ]]; then
+          if [[ -n ${index_modified_format} ]]; then
+            (( index_modified++ ))
+          else
+            (( indexed++ ))
+          fi
+        elif [[ ${line} == [AC]?\ * ]]; then
+          if [[ -n ${index_added_format} ]]; then
+            (( index_added++ ))
+          else
+            (( indexed++ ))
+          fi
+        elif [[ ${line} == D?\ * ]]; then
+          if [[ -n ${index_deleted_format} ]]; then
+            (( index_deleted++ ))
+          else
+            (( indexed++ ))
+          fi
+        elif [[ ${line} == R?\ * ]]; then
+          if [[ -n ${index_renamed_format} ]]; then
+            (( index_renamed++ ))
+          else
+            (( indexed++ ))
+          fi
+        fi
+        if [[ ${line} == ?[MTARC]\ * ]]; then
+          if [[ -n ${work_modified_format} ]]; then
+            (( work_modified++ ))
+          else
+            (( unindexed++ ))
+          fi
+        elif [[ ${line} == ?D\ * ]]; then
+          if [[ -n ${work_deleted_format} ]]; then
+            (( work_deleted++ ))
+          else
+            (( unindexed++ ))
+          fi
+        fi
+      fi
+      (( dirty++ ))
+    done
+    # Format indexed.
+    if (( indexed )); then
+      zformat -f indexed_formatted ${indexed_format} "i:${indexed}"
+    fi
+    # Format unindexed.
+    if (( unindexed )); then
+      zformat -f unindexed_formatted ${unindexed_format} "I:${unindexed}"
+    fi
+    # Format index-added.
+    if (( index_added )); then
+      zformat -f index_added_formatted "${index_added_format}" "a:${index_added}"
+    fi
+    # Format index-deleted.
+    if (( index_deleted )); then
+      zformat -f index_deleted_formatted "${index_deleted_format}" "x:${index_deleted}"
+    fi
+    # Format index-modified.
+    if (( index_modified )); then
+      zformat -f index_modified_formatted "${index_modified_format}" "m:${index_modified}"
+    fi
+    # Format index-renamed.
+    if (( index_renamed )); then
+      zformat -f index_renamed_formatted "${index_renamed_format}" "r:${index_renamed}"
+    fi
+    # Format work-deleted.
+    if (( work_deleted )); then
+      zformat -f work_deleted_formatted "${work_deleted_format}" "X:${work_deleted}"
+    fi
+    # Format work-modified.
+    if (( work_modified )); then
+      zformat -f work_modified_formatted "${work_modified_format}" "M:${work_modified}"
+    fi
+    # Format unmerged.
+    if (( unmerged )); then
+      zformat -f unmerged_formatted ${unmerged_format} "U:${unmerged}"
+    fi
+    # Format untracked.
+    if (( untracked )); then
+      zformat -f untracked_formatted ${untracked_format} "u:${untracked}"
+    fi
   fi
 fi
 
@@ -289,7 +292,7 @@ fi
 # Format dirty and clean.
 if (( dirty )); then
   zformat -f dirty_formatted ${dirty_format} "D:${dirty}"
-else
+elif (( ! hide_dirty )); then
   clean_formatted=${clean_format}
 fi
 
