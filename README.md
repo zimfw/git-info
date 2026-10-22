@@ -26,9 +26,9 @@ the following git config, either per repository or globally (with `--global`):
 
 ### Verbose mode
 
-Verbose mode uses `git status` and computes the count of indexed, unindexed and
-also untracked files. Verbose mode can be slower, depending on your repository
-and the git version being used. It can be enabled with the following zstyle:
+Verbose mode uses `git status` to count files in each state, including untracked
+files. Verbose mode can be slower, depending on your repository and the git
+version being used. It can be enabled with the following zstyle:
 
     zstyle ':zim:git-info' verbose yes
 
@@ -50,7 +50,7 @@ following syntax to define custom styles for each context you want displayed:
 | action    |  %s  | Special action name (see *Special action contexts* below)
 | ahead     |  %A  | Commits ahead of remote count
 | behind    |  %B  | Commits behind remote count
-| diverged  |  %V  | Diverged commits (both ahead and behind are yield when it's not defined)
+| diverged  |  %V  | Diverged state (ahead and behind are shown instead when not defined)
 | branch    |  %b  | Branch name
 | commit    |  %c  | Commit short hash (when in 'detached HEAD' state)
 | clean     |  %C  | Clean state
@@ -61,10 +61,9 @@ following syntax to define custom styles for each context you want displayed:
 | remote    |  %R  | Remote name
 | stashed   |  %S  | Stashed states count
 
-While the commit and position contexts are only available when in ['detached
-HEAD' state], on the other hand, the ahead, behind, diverged, branch and remote
-contexts are only available when an actual branch is checked out (so when
-**not** in 'detached HEAD' state).
+The commit and position contexts are only available when in ['detached HEAD'
+state]. The ahead, behind, diverged, branch and remote contexts are only
+available when a branch is checked out.
 
 ### Verbose mode contexts
 
@@ -72,23 +71,28 @@ The following contexts are only available when verbose mode is enabled:
 
 | Name           | Code | Description
 | -------------- | :--: | ------------------------------------------------------
-| index-added    |  %a  | Indexed added files count (indexed is yield when it's not defined)
-| index-deleted  |  %x  | Indexed deleted files count (indexed is yield when it's not defined)
-| index-renamed  |  %r  | Indexed renamed files count (indexed is yield when it's not defined)
-| index-modified |  %m  | Indexed modified files count (indexed is yield when it's not defined)
-| work-deleted   |  %X  | Working tree deleted files count (unindexed is yield when it's not defined)
-| work-modified  |  %M  | Working tree modified files count (unindexed is yield when it's not defined)
-| ummerged       |  %U  | Unmerged files count (both indexed and unindexed are yield when it's not defined)
+| index-added    |  %a  | Indexed added files count (counted under indexed when not defined)
+| index-deleted  |  %x  | Indexed deleted files count (counted under indexed when not defined)
+| index-renamed  |  %r  | Indexed renamed files count (counted under indexed when not defined)
+| index-modified |  %m  | Indexed modified files count (counted under indexed when not defined)
+| work-deleted   |  %X  | Working tree deleted files count (counted under unindexed when not defined)
+| work-modified  |  %M  | Working tree modified files count (counted under unindexed when not defined)
+| unmerged       |  %U  | Unmerged files count (counted under both indexed and unindexed when not defined)
 | untracked      |  %u  | Untracked files count
 
-Note how, except for the untracked context, the files count fall back to the
-indexed and unindexed contexts when some of the contexts above are not defined.
-This is so you can choose the level of detail you want by defining the contexts
-for which you want a separate indicator to be shown, and then using indexed and
-unindexed for the remainder. Note also that if you define all index- contexts,
-then nothing will be left to be counted under indexed and, likewise, if you
-define all work- contexts, then nothing will be counted under unindexed, so you
-don't need to define the latter ones in these cases.
+Except for untracked files, files whose context is not defined are counted under
+the indexed or unindexed contexts instead. This lets you choose the level of
+detail you want: define the contexts you want shown as separate indicators, and
+use indexed and unindexed for the remaining files.
+
+If you define unmerged and all the index- contexts, no files are left to be
+counted under indexed, so you don't need to define it. Likewise, if you define
+unmerged and all the work- contexts, you don't need to define unindexed.
+
+When enabling verbose mode, we recommend defining at least the unmerged and
+untracked contexts. Then either define indexed and unindexed, optionally along
+with some of the index- and work- contexts, or define all the index- and work-
+contexts for the most detailed configuration.
 
 ### Special action contexts
 
