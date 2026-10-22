@@ -71,13 +71,13 @@ The following contexts are only available when verbose mode is enabled:
 
 | Name           | Code | Description
 | -------------- | :--: | ------------------------------------------------------
-| index-added    |  %a  | Indexed added files count (counted under indexed when not defined)
-| index-deleted  |  %x  | Indexed deleted files count (counted under indexed when not defined)
-| index-renamed  |  %r  | Indexed renamed files count (counted under indexed when not defined)
-| index-modified |  %m  | Indexed modified files count (counted under indexed when not defined)
-| work-deleted   |  %X  | Working tree deleted files count (counted under unindexed when not defined)
-| work-modified  |  %M  | Working tree modified files count (counted under unindexed when not defined)
-| unmerged       |  %U  | Unmerged files count (counted under both indexed and unindexed when not defined)
+| index-added    |  %a  | Indexed added files count (counted as indexed when not defined)
+| index-deleted  |  %x  | Indexed deleted files count (counted as indexed when not defined)
+| index-renamed  |  %r  | Indexed renamed files count (counted as indexed when not defined)
+| index-modified |  %m  | Indexed modified files count (counted as indexed when not defined)
+| work-deleted   |  %X  | Working tree deleted files count (counted as unindexed when not defined)
+| work-modified  |  %M  | Working tree modified files count (counted as unindexed when not defined)
+| unmerged       |  %U  | Unmerged files count (counted as indexed and unindexed when not defined)
 | untracked      |  %u  | Untracked files count
 
 Except for untracked files, files whose context is not defined are counted under

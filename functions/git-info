@@ -173,11 +173,11 @@ if (( ! hide_dirty )); then
     done
     # Format indexed.
     if (( indexed )); then
-      zformat -f indexed_formatted ${indexed_format} "i:${indexed}"
+      zformat -f indexed_formatted "${indexed_format}" "i:${indexed}"
     fi
     # Format unindexed.
     if (( unindexed )); then
-      zformat -f unindexed_formatted ${unindexed_format} "I:${unindexed}"
+      zformat -f unindexed_formatted "${unindexed_format}" "I:${unindexed}"
     fi
     # Format index-added.
     if (( index_added )); then
@@ -205,11 +205,11 @@ if (( ! hide_dirty )); then
     fi
     # Format unmerged.
     if (( unmerged )); then
-      zformat -f unmerged_formatted ${unmerged_format} "U:${unmerged}"
+      zformat -f unmerged_formatted "${unmerged_format}" "U:${unmerged}"
     fi
     # Format untracked.
     if (( untracked )); then
-      zformat -f untracked_formatted ${untracked_format} "u:${untracked}"
+      zformat -f untracked_formatted "${untracked_format}" "u:${untracked}"
     fi
   fi
 fi
