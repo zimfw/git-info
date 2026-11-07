@@ -14,7 +14,7 @@ typeset -gA git_info
 # directory or a file, see https://git-scm.com/docs/gitrepository-layout
 local git_root=${PWD}
 while [[ ! -e ${git_root}/.git ]]; do
-  if [[ ${git_root} == / ]] return 1
+  [[ ${git_root} != / ]] || return 1
   git_root=${git_root:h}
 done
 
@@ -29,7 +29,7 @@ done
 # Get the branch.
 typeset -g __GIT_INFO_BRANCH
 __GIT_INFO_BRANCH=$(command git symbolic-ref -q --short HEAD 2>/dev/null)
-if (( ? == 128 )) return 1
+(( ? != 128 )) || return 1
 
 # Ignore submodule status.
 local ignore_submodules
@@ -172,45 +172,25 @@ if (( ! hide_dirty )); then
       (( dirty++ ))
     done
     # Format indexed.
-    if (( indexed )); then
-      zformat -f indexed_formatted "${indexed_format}" "i:${indexed}"
-    fi
+    if (( indexed )) zformat -f indexed_formatted "${indexed_format}" "i:${indexed}"
     # Format unindexed.
-    if (( unindexed )); then
-      zformat -f unindexed_formatted "${unindexed_format}" "I:${unindexed}"
-    fi
+    if (( unindexed )) zformat -f unindexed_formatted "${unindexed_format}" "I:${unindexed}"
     # Format index-added.
-    if (( index_added )); then
-      zformat -f index_added_formatted "${index_added_format}" "a:${index_added}"
-    fi
+    if (( index_added )) zformat -f index_added_formatted "${index_added_format}" "a:${index_added}"
     # Format index-deleted.
-    if (( index_deleted )); then
-      zformat -f index_deleted_formatted "${index_deleted_format}" "x:${index_deleted}"
-    fi
+    if (( index_deleted )) zformat -f index_deleted_formatted "${index_deleted_format}" "x:${index_deleted}"
     # Format index-modified.
-    if (( index_modified )); then
-      zformat -f index_modified_formatted "${index_modified_format}" "m:${index_modified}"
-    fi
+    if (( index_modified )) zformat -f index_modified_formatted "${index_modified_format}" "m:${index_modified}"
     # Format index-renamed.
-    if (( index_renamed )); then
-      zformat -f index_renamed_formatted "${index_renamed_format}" "r:${index_renamed}"
-    fi
+    if (( index_renamed )) zformat -f index_renamed_formatted "${index_renamed_format}" "r:${index_renamed}"
     # Format work-deleted.
-    if (( work_deleted )); then
-      zformat -f work_deleted_formatted "${work_deleted_format}" "X:${work_deleted}"
-    fi
+    if (( work_deleted )) zformat -f work_deleted_formatted "${work_deleted_format}" "X:${work_deleted}"
     # Format work-modified.
-    if (( work_modified )); then
-      zformat -f work_modified_formatted "${work_modified_format}" "M:${work_modified}"
-    fi
+    if (( work_modified )) zformat -f work_modified_formatted "${work_modified_format}" "M:${work_modified}"
     # Format unmerged.
-    if (( unmerged )); then
-      zformat -f unmerged_formatted "${unmerged_format}" "U:${unmerged}"
-    fi
+    if (( unmerged )) zformat -f unmerged_formatted "${unmerged_format}" "U:${unmerged}"
     # Format untracked.
-    if (( untracked )); then
-      zformat -f untracked_formatted "${untracked_format}" "u:${untracked}"
-    fi
+    if (( untracked )) zformat -f untracked_formatted "${untracked_format}" "u:${untracked}"
   fi
 fi
 
@@ -235,9 +215,7 @@ if (( ${#cmds} )); then
         R)
           # Format remote.
           typeset -g __GIT_INFO_REMOTE=${${line#R:}#refs/remotes/}
-          if [[ -n ${__GIT_INFO_REMOTE} ]]; then
-            zformat -f remote_formatted ${remote_format} 'R:${__GIT_INFO_REMOTE}'
-          fi
+          if [[ -n ${__GIT_INFO_REMOTE} ]] zformat -f remote_formatted ${remote_format} 'R:${__GIT_INFO_REMOTE}'
           ;;
         A)
           local -r ahead_and_behind=${line#A:}
@@ -249,13 +227,9 @@ if (( ${#cmds} )); then
               diverged_formatted=${diverged_format}
             else
               # Format ahead.
-              if [[ -n ${ahead_format} && ${ahead} -gt 0 ]]; then
-                zformat -f ahead_formatted ${ahead_format} "A:${ahead}"
-              fi
+              if [[ -n ${ahead_format} && ${ahead} -gt 0 ]] zformat -f ahead_formatted ${ahead_format} "A:${ahead}"
               # Format behind.
-              if [[ -n ${behind_format} && ${behind} -gt 0 ]]; then
-                zformat -f behind_formatted ${behind_format} "B:${behind}"
-              fi
+              if [[ -n ${behind_format} && ${behind} -gt 0 ]] zformat -f behind_formatted ${behind_format} "B:${behind}"
             fi
           fi
           ;;
@@ -266,9 +240,7 @@ if (( ${#cmds} )); then
         p)
           # Format position.
           typeset -g __GIT_INFO_POSITION=${line#p:}
-          if [[ -n ${__GIT_INFO_POSITION} ]]; then
-            zformat -f position_formatted ${position_format} 'p:${__GIT_INFO_POSITION}'
-          fi
+          if [[ -n ${__GIT_INFO_POSITION} ]] zformat -f position_formatted ${position_format} 'p:${__GIT_INFO_POSITION}'
           ;;
         I)
           # Format unindexed.
@@ -302,27 +274,27 @@ local info_format reply
 zstyle -a ':zim:git-info:keys' format 'info_formats'
 for info_format in ${(k)info_formats}; do
   zformat -f reply ${info_formats[${info_format}]} \
-    "a:${index_added_formatted}" \
-    "A:${ahead_formatted}" \
-    "B:${behind_formatted}" \
-    "b:${branch_formatted}" \
-    "C:${clean_formatted}" \
-    "c:${commit_formatted}" \
-    "D:${dirty_formatted}" \
-    "i:${indexed_formatted}" \
-    "I:${unindexed_formatted}" \
-    "m:${index_modified_formatted}" \
-    "M:${work_modified_formatted}" \
-    "p:${position_formatted}" \
-    "r:${index_renamed_formatted}" \
-    "R:${remote_formatted}" \
-    "s:${action_formatted}" \
-    "S:${stashed_formatted}" \
-    "U:${unmerged_formatted}" \
-    "u:${untracked_formatted}" \
-    "V:${diverged_formatted}" \
-    "x:${index_deleted_formatted}" \
-    "X:${work_deleted_formatted}"
+      "a:${index_added_formatted}" \
+      "A:${ahead_formatted}" \
+      "B:${behind_formatted}" \
+      "b:${branch_formatted}" \
+      "C:${clean_formatted}" \
+      "c:${commit_formatted}" \
+      "D:${dirty_formatted}" \
+      "i:${indexed_formatted}" \
+      "I:${unindexed_formatted}" \
+      "m:${index_modified_formatted}" \
+      "M:${work_modified_formatted}" \
+      "p:${position_formatted}" \
+      "r:${index_renamed_formatted}" \
+      "R:${remote_formatted}" \
+      "s:${action_formatted}" \
+      "S:${stashed_formatted}" \
+      "U:${unmerged_formatted}" \
+      "u:${untracked_formatted}" \
+      "V:${diverged_formatted}" \
+      "x:${index_deleted_formatted}" \
+      "X:${work_deleted_formatted}"
   git_info[${info_format}]=${reply}
 done
 
